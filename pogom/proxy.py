@@ -4,6 +4,7 @@
 import logging
 import requests
 import sys
+import time
 
 from queue import Queue
 from threading import Thread
@@ -114,3 +115,20 @@ def check_proxies(args):
     else:
         log.info('Proxy check completed with %d working proxies of %d configured', working_proxies, total_proxies)
         return proxies
+
+
+# Thread function for periodical proxy updating
+def proxies_refresher(args):
+
+    while True:
+        # Wait BEFORE refresh, because initial refresh is done at startup
+        time.sleep(args.proxy_refresh)
+        log.info('Regular proxy refresh complete')
+
+        try:
+            proxies = check_proxies(args)
+            args.proxy = proxies
+            log.info('Regular proxy refresh complete')
+        except Exception as e:
+            log.exception('Exception while refresh proxies: %s', e)
+
