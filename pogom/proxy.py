@@ -131,4 +131,3 @@ def proxies_refresher(args):
             log.info('Regular proxy refresh complete')
         except Exception as e:
             log.exception('Exception while refresh proxies: %s', e)
-
