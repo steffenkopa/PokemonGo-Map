@@ -208,7 +208,7 @@ def main():
             t.start()
         else:
             log.info('Periodical proxies refresh disabled.')
-        
+
         # Gather the pokemons!
 
         # check the sort of scan
