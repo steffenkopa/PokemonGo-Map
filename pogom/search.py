@@ -41,6 +41,8 @@ from .transform import generate_location_steps
 from .fakePogoApi import FakePogoApi
 from .utils import now
 
+from .proxy import get_new_proxy
+
 import terminalsize
 
 log = logging.getLogger(__name__)
@@ -313,12 +315,7 @@ def search_overseer_thread(args, method, new_location_queue, pause_bit, encrypti
 
         # Set proxy for each worker, using round robin
         proxy_display = 'No'
-        proxy_url = False
-
-        if args.proxy:
-            proxy_display = proxy_url = args.proxy[i % len(args.proxy)]
-            if args.proxy_display.upper() != 'FULL':
-                proxy_display = i % len(args.proxy)
+        proxy_url = False    # Will be assigned inside a search thread
 
         workerId = 'Worker {:03}'.format(i)
         threadStatus[workerId] = {
@@ -577,6 +574,18 @@ def search_worker_thread(args, account_queue, account_failures, search_items_que
                 api = FakePogoApi(args.mock)
             else:
                 api = PGoApi()
+
+            # New account - new proxy
+            if args.proxy:
+                # If proxy is not assigned yet or if proxy-rotation is defined - query for new proxu
+                if (not status['proxy_url']) or \
+                   ((args.proxy_rotation is not None) and (args.proxy_rotation != 'none')):
+
+                    proxy_num, status['proxy_url'] = get_new_proxy(args)
+                    if args.proxy_display.upper() != 'FULL':
+                        status['proxy_display'] = proxy_num
+                    else:
+                        status['proxy_display'] = status['proxy_url']
 
             if status['proxy_url']:
                 log.debug("Using proxy %s", status['proxy_url'])

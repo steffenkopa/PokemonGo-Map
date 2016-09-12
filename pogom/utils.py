@@ -140,10 +140,12 @@ def get_args():
                         (0 to disable)', type=int, default=0)
     parser.add_argument('-px', '--proxy', help='Proxy url (e.g. socks5://127.0.0.1:9050)', action='append')
     parser.add_argument('-pxt', '--proxy-timeout', help='Timeout settings for proxy checker in seconds ', type=int, default=5)
-    parser.add_argument('-pxd', '--proxy-display', help='Display info on which proxy beeing used (index or full) To be used with -ps', type=str, default='index')
-    parser.add_argument('-pxf', '--proxyfile', help='Load proxy list from text file (one proxy per line), overrides -px/--proxy')
-    parser.add_argument('-pxr', '--proxy-refresh', help='Period of proxy file reloading, in seconds. Works only with -pxf/--proxyfile. \
+    parser.add_argument('-pxd', '--proxy-display', help='Display info on which proxy beeing used (index or full). To be used with -ps', type=str, default='index')
+    parser.add_argument('-pxf', '--proxy-file', help='Load proxy list from text file (one proxy per line), overrides -px/--proxy')
+    parser.add_argument('-pxr', '--proxy-refresh', help='Period of proxy file reloading, in seconds. Works only with -pxf/--proxy-file. \
                         (0 to disable)', type=int, default=0)
+    parser.add_argument('-pxo', '--proxy-rotation', help='Enable proxy rotation with account changing for search threads \
+                        (none/round/random)', type=str, default='none')
     parser.add_argument('--db-type', help='Type of database to be used (default: sqlite)',
                         default='sqlite')
     parser.add_argument('--db-name', help='Name of the database to be used')

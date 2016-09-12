@@ -202,7 +202,7 @@ def main():
         args.proxy = check_proxies(args)
 
         # Run periodical proxy refresh thread
-        if (args.proxyfile is not None) and (args.proxy_refresh > 0):
+        if (args.proxy_file is not None) and (args.proxy_refresh > 0):
             t = Thread(target=proxies_refresher, name='proxy-refresh', args=(args,))
             t.daemon = True
             t.start()

@@ -8,8 +8,12 @@ import time
 
 from queue import Queue
 from threading import Thread
+from random import randint
 
 log = logging.getLogger(__name__)
+
+# Last used proxy for round-robin
+last_proxy = -1
 
 
 # Simple function to do a call to Niantic's system for testing proxy connectivity
@@ -60,7 +64,7 @@ def check_proxy(proxy_queue, timeout, proxies, show_warnings):
 def check_proxies(args):
 
     # Load proxies from the file. Override args.proxy if specified
-    if args.proxyfile is not None:
+    if args.proxy_file is not None:
         log.info('Loading proxies from file.')
 
         if args.proxy is not None:
@@ -68,7 +72,7 @@ def check_proxies(args):
         else:
             args.proxy = []
 
-        with open(args.proxyfile) as f:
+        with open(args.proxy_file) as f:
             for line in f:
                 # Ignore blank lines and comment lines
                 if len(line.strip()) == 0 or line.startswith('#'):
@@ -123,11 +127,37 @@ def proxies_refresher(args):
     while True:
         # Wait BEFORE refresh, because initial refresh is done at startup
         time.sleep(args.proxy_refresh)
-        log.info('Regular proxy refresh complete')
 
         try:
             proxies = check_proxies(args)
+
+            if len(proxies) == 0:
+                log.warning('No live proxies found! Living with old ones until next round...')
+                continue
+
             args.proxy = proxies
             log.info('Regular proxy refresh complete')
         except Exception as e:
             log.exception('Exception while refresh proxies: %s', e)
+
+# Provide new proxy for a search thread
+def get_new_proxy(args):
+
+    global last_proxy
+
+    # If none/round - simply get next proxy
+    if (args.proxy_rotation is None) or (args.proxy_rotation == 'none') or (args.proxy_rotation == 'round'):
+        if last_proxy >= len(args.proxy):
+            last_proxy = 0
+        else:
+            last_proxy = last_proxy + 1
+        lp = last_proxy
+    # If random - get random one
+    elif (args.proxy_rotation == 'random'):
+        lp = randint(0,len(args.proxy)-1)
+    # If random - get random one
+    else:
+        log.warning('Parameter -pxo/--proxy-rotation has wrong value! Use only first proxy!')
+        lp = 0
+
+    return lp, args.proxy[lp]
