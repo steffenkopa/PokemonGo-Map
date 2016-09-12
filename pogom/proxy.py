@@ -140,6 +140,7 @@ def proxies_refresher(args):
         except Exception as e:
             log.exception('Exception while refresh proxies: %s', e)
 
+
 # Provide new proxy for a search thread
 def get_new_proxy(args):
 
@@ -154,7 +155,7 @@ def get_new_proxy(args):
         lp = last_proxy
     # If random - get random one
     elif (args.proxy_rotation == 'random'):
-        lp = randint(0,len(args.proxy)-1)
+        lp = randint(0, len(args.proxy) - 1)
     # If random - get random one
     else:
         log.warning('Parameter -pxo/--proxy-rotation has wrong value! Use only first proxy!')
