@@ -63,35 +63,34 @@ def check_proxy(proxy_queue, timeout, proxies, show_warnings):
 # Check all proxies and return a working list with proxies
 def check_proxies(args):
 
+    source_proxies = []
+
     # Load proxies from the file. Override args.proxy if specified
     if args.proxy_file is not None:
         log.info('Loading proxies from file.')
-
-        if args.proxy is not None:
-            del args.proxy[:]
-        else:
-            args.proxy = []
 
         with open(args.proxy_file) as f:
             for line in f:
                 # Ignore blank lines and comment lines
                 if len(line.strip()) == 0 or line.startswith('#'):
                     continue
-                args.proxy.append(line.strip())
+                source_proxies.append(line.strip())
 
-        log.info('Loaded %d proxies.', len(args.proxy))
+        log.info('Loaded %d proxies.', len(source_proxies))
 
-        if len(args.proxy) == 0:
+        if len(source_proxies) == 0:
             log.error('Proxy file was configured but no proxies were loaded! We are aborting!')
             sys.exit(1)
+    else:
+        source_proxies = args.proxy
 
     # No proxies - no cookies
-    if (args.proxy is None) or (len(args.proxy) == 0):
+    if (source_proxies is None) or (len(source_proxies) == 0):
         log.info('No proxies are configured.')
         return None
 
     proxy_queue = Queue()
-    total_proxies = len(args.proxy)
+    total_proxies = len(source_proxies)
 
     log.info('Checking %d proxies...', total_proxies)
     if (total_proxies > 10):
@@ -99,7 +98,7 @@ def check_proxies(args):
 
     proxies = []
 
-    for proxy in enumerate(args.proxy):
+    for proxy in enumerate(source_proxies):
         proxy_queue.put(proxy)
 
         t = Thread(target=check_proxy,
