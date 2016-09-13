@@ -23,7 +23,8 @@ check_result_wrong = 3
 check_result_timeout = 4
 check_result_exception = 5
 check_result_empty = 6
-check_result_max = 6 # Should be equal to maximal return code!
+check_result_max = 6  # Should be equal to maximal return code!
+
 
 # Simple function to do a call to Niantic's system for testing proxy connectivity
 def check_proxy(proxy_queue, timeout, proxies, show_warnings, check_results):
@@ -66,7 +67,7 @@ def check_proxy(proxy_queue, timeout, proxies, show_warnings, check_results):
 
         except Exception as e:
             proxy_error = e
-            check_result = check_result_exception 
+            check_result = check_result_exception
 
     else:
         proxy_error = "Empty proxy server"
@@ -144,9 +145,9 @@ def check_proxies(args):
         log.error('Proxy was configured but no working proxies were found! We are aborting!')
         sys.exit(1)
     else:
-        log.info('Proxy check completed. Working: %d, banned: %d, timeout: %d, other fails: %d of total %d configured', \
-                 working_proxies, check_results[check_result_banned], check_results[check_result_timeout], \
-                 check_results[check_result_failed] + check_results[check_result_wrong] + check_results[check_result_exception] + check_results[check_result_empty], \
+        log.info('Proxy check completed. Working: %d, banned: %d, timeout: %d, other fails: %d of total %d configured',
+                 working_proxies, check_results[check_result_banned], check_results[check_result_timeout],
+                 check_results[check_result_failed] + check_results[check_result_wrong] + check_results[check_result_exception] + check_results[check_result_empty],
                  total_proxies)
         return proxies
 
