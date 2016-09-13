@@ -81,7 +81,7 @@ def check_proxies(args):
                 source_proxies.append(line.strip())
 
         log.info('Loaded %d proxies.', len(source_proxies))
-        
+
         if len(source_proxies) == 0:
             log.error('Proxy file was configured but no proxies were loaded! We are aborting!')
             sys.exit(1)
