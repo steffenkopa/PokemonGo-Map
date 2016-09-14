@@ -208,7 +208,7 @@ def account_recycler(accounts_queue, account_failures, args):
         # Create a new copy of the failure list to search through, so we can iterate through it without it changing
         failed_temp = list(account_failures)
 
-        # Search through the list for any item that last failed before 2 hours ago
+        # Search through the list for any item that last failed before -ari/--account-rest-interval seconds
         ok_time = now() - args.account_rest_interval
         for a in failed_temp:
             if a['last_fail_time'] <= ok_time:
@@ -405,8 +405,11 @@ def search_worker_thread(args, account_queue, account_failures, search_items_que
             status['location'] = False
             status['last_scan_time'] = 0
 
-            # only sleep when consecutive_fails reaches max_failures, overall fails for stat purposes
+            # sleep when consecutive_fails reaches max_failures, overall fails for stat purposes
             consecutive_fails = 0
+
+            # sleep when consecutive_noitems reaches max_empty, overall noitems for stat purposes
+            consecutive_noitems = 0
 
             # Create the API instance this will use
             if args.mock != '':
@@ -416,7 +419,7 @@ def search_worker_thread(args, account_queue, account_failures, search_items_que
 
             # New account - new proxy
             if args.proxy:
-                # If proxy is not assigned yet or if proxy-rotation is defined - query for new proxu
+                # If proxy is not assigned yet or if proxy-rotation is defined - query for new proxy
                 if (not status['proxy_url']) or \
                    ((args.proxy_rotation is not None) and (args.proxy_rotation != 'none')):
 
@@ -436,10 +439,17 @@ def search_worker_thread(args, account_queue, account_failures, search_items_que
             while True:
 
                 # If this account has been messing up too hard, let it rest
-                if consecutive_fails >= args.max_failures:
+                if (args.max_failures > 0) and (consecutive_fails >= args.max_failures):
                     status['message'] = 'Account {} failed more than {} scans; possibly bad account. Switching accounts...'.format(account['username'], args.max_failures)
                     log.warning(status['message'])
                     account_failures.append({'account': account, 'last_fail_time': now(), 'reason': 'failures'})
+                    break  # exit this loop to get a new account and have the API recreated
+
+                # If this account had not find anything for too long, let it rest
+                if (args.max_empty > 0) and (consecutive_noitems >= args.max_empty):
+                    status['message'] = 'Account {} returned empty scan for more than {} scans; possibly ip banned. Switching accounts...'.format(account['username'], args.max_empty)
+                    log.warning(status['message'])
+                    account_failures.append({'account': account, 'last_fail_time': now(), 'reason': 'empty scans'})
                     break  # exit this loop to get a new account and have the API recreated
 
                 # If this account has been running too long, let it rest
@@ -486,22 +496,23 @@ def search_worker_thread(args, account_queue, account_failures, search_items_que
                     # No sleep here; we've not done anything worth sleeping for. Plus we clearly need to catch up!
                     continue
 
-                status['message'] = 'Searching at {:6f},{:6f}'.format(step_location[0], step_location[1])
-                log.info(status['message'])
-
                 # Let the api know where we intend to be for this loop
                 api.set_position(*step_location)
 
                 # Ok, let's get started -- check our login status
+                status['message'] = 'Logging in...'
                 check_login(args, account, api, step_location, status['proxy_url'])
 
                 # Make the actual request (finally!)
+                status['message'] = 'Searching at {:6f},{:6f}'.format(step_location[0], step_location[1])
+                log.info(status['message'])
                 response_dict = map_request(api, step_location, args.jitter)
 
                 # G'damnit, nothing back. Mark it up, sleep, carry on
                 if not response_dict:
                     status['fail'] += 1
                     consecutive_fails += 1
+                    # consecutive_noitems = 0 - I propose to leave noitems counter in case of error
                     status['message'] = 'Invalid response at {:6f},{:6f}, abandoning location'.format(step_location[0], step_location[1])
                     log.error(status['message'])
                     time.sleep(args.scan_delay)
@@ -511,7 +522,12 @@ def search_worker_thread(args, account_queue, account_failures, search_items_que
                 try:
                     parsed = parse_map(args, response_dict, step_location, dbq, whq)
                     search_items_queue.task_done()
-                    status[('success' if parsed['count'] > 0 else 'noitems')] += 1
+                    if parsed['count'] > 0:
+                        status['success'] += 1
+                        consecutive_noitems = 0
+                    else:
+                        status['noitems'] += 1
+                        consecutive_noitems += 1
                     consecutive_fails = 0
                     status['message'] = 'Search at {:6f},{:6f} completed with {} finds'.format(step_location[0], step_location[1], parsed['count'])
                     log.debug(status['message'])
@@ -519,6 +535,7 @@ def search_worker_thread(args, account_queue, account_failures, search_items_que
                     parsed = False
                     status['fail'] += 1
                     consecutive_fails += 1
+                    # consecutive_noitems = 0 - I propose to leave noitems counter in case of error
                     status['message'] = 'Map parse failed at {:6f},{:6f}, abandoning location. {} may be banned.'.format(step_location[0], step_location[1], account['username'])
                     log.exception(status['message'])
 
