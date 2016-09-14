@@ -545,7 +545,7 @@ def search_worker_thread(args, account_queue, account_failures, search_items_que
                     consecutive_fails += 1
                     # consecutive_noitems = 0 - I propose to leave noitems counter in case of error
                     status['message'] = 'Map parse failed at {:6f},{:6f}, abandoning location. {} may be banned.'.format(step_location[0], step_location[1], account['username'])
-                    log.exception('{}. Exception message: {}', status['message'], e)
+                    log.exception('{}. Exception message: {}'.format(status['message'], e))
 
                 # Get detailed information about gyms
                 if args.gym_info and parsed:
@@ -579,7 +579,7 @@ def search_worker_thread(args, account_queue, account_failures, search_items_que
                         log.debug(status['message'])
 
                         for gym in gyms_to_update.values():
-                            status['message'] = 'Getting details for gym {} of {} for location {},{}...'.format(current_gym, len(gyms_to_update), step_location[0], step_location[1])
+                            status['message'] = 'Getting details for gym {} of {} for location {:6f},{:6f}...'.format(current_gym, len(gyms_to_update), step_location[0], step_location[1])
                             time.sleep(random.random() + 2)
                             response = gym_request(api, step_location, gym)
 
@@ -594,7 +594,7 @@ def search_worker_thread(args, account_queue, account_failures, search_items_que
                             # increment which gym we're on (for status messages)
                             current_gym += 1
 
-                        status['message'] = 'Processing details of {} gyms for location {},{}...'.format(len(gyms_to_update), step_location[0], step_location[1])
+                        status['message'] = 'Processing details of {} gyms for location {:6f},{:6f}...'.format(len(gyms_to_update), step_location[0], step_location[1])
                         log.debug(status['message'])
 
                         if gym_responses:
