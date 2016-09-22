@@ -253,7 +253,7 @@ def worker_status_db_thread(threads_status, name, db_updates_queue):
 
 
 # The main search loop that keeps an eye on the over all process
-def search_overseer_thread(args, new_location_queue, pause_bit, encryption_lib_path, db_updates_queue, wh_queue):
+def search_overseer_thread(args, new_location_queue, pause_bit, heartb, encryption_lib_path, db_updates_queue, wh_queue):
 
     log.info('Search overseer starting')
 
@@ -341,6 +341,10 @@ def search_overseer_thread(args, new_location_queue, pause_bit, encryption_lib_p
 
     # The real work starts here but will halt on pause_bit.set()
     while True:
+
+        if args.on_demand_timeout > 0 and (now() - args.on_demand_timeout) > heartb[0]:
+            pause_bit.set()
+            log.info("Searching paused due to inactivity...")
 
         # Wait here while scanning is paused
         while pause_bit.is_set():
@@ -438,6 +442,10 @@ def search_worker_thread(args, account_queue, account_failures, search_items_que
             # The forever loop for the searches
             while True:
 
+                while pause_bit.is_set():
+                    status['message'] = 'Scanning paused'
+                    time.sleep(2)
+
                 # If this account has been messing up too hard, let it rest
                 if (args.max_failures > 0) and (consecutive_fails >= args.max_failures):
                     status['message'] = 'Account {} failed more than {} scans; possibly bad account. Switching accounts...'.format(account['username'], args.max_failures)
@@ -466,10 +474,6 @@ def search_worker_thread(args, account_queue, account_failures, search_items_que
                         log.info(status['message'])
                         account_failures.append({'account': account, 'last_fail_time': now(), 'reason': 'rest interval'})
                         break
-
-                while pause_bit.is_set():
-                    status['message'] = 'Scanning paused'
-                    time.sleep(2)
 
                 # Grab the next thing to search (when available)
                 status['message'] = 'Waiting for item from queue'
@@ -504,11 +508,17 @@ def search_worker_thread(args, account_queue, account_failures, search_items_que
                     continue
 
                 # Let the api know where we intend to be for this loop
+                # doing this before check_login so it does not also have to be done there
+                # when the auth token is refreshed
                 api.set_position(*step_location)
 
                 # Ok, let's get started -- check our login status
                 status['message'] = 'Logging in...'
                 check_login(args, account, api, step_location, status['proxy_url'])
+
+                # putting this message after the check_login so the messages aren't out of order
+                status['message'] = 'Searching at {:6f},{:6f}'.format(step_location[0], step_location[1])
+                log.info(status['message'])
 
                 # Make the actual request (finally!)
                 status['message'] = 'Searching at {:6f},{:6f}'.format(step_location[0], step_location[1])
@@ -627,7 +637,6 @@ def check_login(args, account, api, position, proxy_url):
 
     # Try to login (a few times, but don't get stuck here)
     i = 0
-    api.set_position(position[0], position[1], position[2])
     while i < args.login_retries:
         try:
             if proxy_url:
@@ -644,7 +653,7 @@ def check_login(args, account, api, position, proxy_url):
                 time.sleep(args.login_delay)
 
     log.debug('Login for account %s successful', account['username'])
-    time.sleep(args.scan_delay)
+    time.sleep(20)
 
 
 def map_request(api, position, jitter=False):
