@@ -212,7 +212,7 @@ def get_args():
                     csv_input.append('')
                     csv_input.append('<username>')
                     csv_input.append('<username>,<password>')
-                    csv_input.append('<ptc/gmail>,<username>,<password>')
+                    csv_input.append('<ptc/google>,<username>,<password>')
 
                     # If the number of fields is differend this is not a CSV
                     if num_fields != line.count(',') + 1:
@@ -252,8 +252,8 @@ def get_args():
 
                     # If the number of fields is three then assume this is "ptc,username,password". As requested..
                     if num_fields == 3:
-                        # If field 0 is not ptc or gmail something is wrong!
-                        if fields[0].lower() == 'ptc' or fields[0].lower() == 'gmail':
+                        # If field 0 is not ptc or google something is wrong!
+                        if fields[0].lower() == 'ptc' or fields[0].lower() == 'google':
                             args.auth_service.append(fields[0])
                         else:
                             field_error = 'method'
@@ -270,11 +270,15 @@ def get_args():
                         else:
                             field_error = 'password'
 
+                    if num_fields > 3:
+                        print 'Too many fields in accounts file: max supported are 3 fields. Found {} fields'.format(num_fields)
+                        sys.exit(1)
+
                     # If something is wrong display error.
                     if field_error != '':
                         type_error = 'empty!'
                         if field_error == 'method':
-                            type_error = 'not ptc or gmail instead we got \'' + fields[0] + '\'!'
+                            type_error = 'not ptc or google instead we got \'' + fields[0] + '\'!'
                         print(sys.argv[0] + ": Error parsing CSV file on line " + str(num) + ". We found " + str(num_fields) + " fields, so your input should have looked like '" + csv_input[num_fields] + "'\nBut you gave us '" + line + "', your " + field_error + " was " + type_error)
                         sys.exit(1)
 
