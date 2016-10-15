@@ -20,7 +20,7 @@ from flask_cache_bust import init_cache_busting
 
 from pogom import config
 from pogom.app import Pogom
-from pogom.utils import get_args, get_encryption_lib_path
+from pogom.utils import get_args, get_encryption_lib_path, now
 
 from pogom.search import search_overseer_thread
 from pogom.models import init_database, create_tables, drop_tables, Pokemon, db_updater, clean_db_loop
@@ -97,11 +97,6 @@ def main():
     sys.excepthook = handle_exception
 
     args = get_args()
-
-    # Check for depreciated argumented
-    if args.debug:
-        log.warning('--debug is depreciated. Please use --verbose instead.  Enabling --verbose')
-        args.verbose = 'nofile'
 
     # Add file logging if enabled
     if args.verbose and args.verbose != 'nofile':
@@ -184,6 +179,8 @@ def main():
         log.info('Parsing of Pokestops disabled')
     if args.no_gyms:
         log.info('Parsing of Gyms disabled')
+    if args.encounter:
+        log.info('Encountering pokemon enabled')
 
     config['LOCALE'] = args.locale
     config['CHINA'] = args.china
@@ -203,6 +200,10 @@ def main():
     # Control the search status (running or not) across threads
     pause_bit = Event()
     pause_bit.clear()
+    if args.on_demand_timeout > 0:
+        pause_bit.set()
+
+    heartbeat = [now()]
 
     # Setup the location tracking queue and push the first location on
     new_location_queue = Queue()
@@ -252,7 +253,7 @@ def main():
                 file.write(json.dumps(spawns))
                 log.info('Finished exporting spawn points')
 
-        argset = (args, new_location_queue, pause_bit, encryption_lib_path, db_updates_queue, wh_updates_queue)
+        argset = (args, new_location_queue, pause_bit, heartbeat, encryption_lib_path, db_updates_queue, wh_updates_queue)
 
         log.debug('Starting a %s search thread', args.scheduler)
         search_thread = Thread(target=search_overseer_thread, name='search-overseer', args=argset)
@@ -266,6 +267,7 @@ def main():
     init_cache_busting(app)
 
     app.set_search_control(pause_bit)
+    app.set_heartbeat_control(heartbeat)
     app.set_location_queue(new_location_queue)
 
     config['ROOT_PATH'] = app.root_path
