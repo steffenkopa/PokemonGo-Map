@@ -537,7 +537,7 @@ def search_worker_thread(args, account_queue, account_failures, search_items_que
                 while pause_bit.is_set():
                     status['message'] = 'Scanning paused'
                     time.sleep(2)
-                    
+
                 # If this account has been messing up too hard, let it rest
                 if (args.max_failures > 0) and (consecutive_fails >= args.max_failures):
                     status['message'] = 'Account {} failed more than {} scans; possibly bad account. Switching accounts...'.format(account['username'], args.max_failures)
@@ -603,7 +603,7 @@ def search_worker_thread(args, account_queue, account_failures, search_items_que
                 # Doing this before check_login so it does not also have to be done there
                 # when the auth token is refreshed.
                 api.set_position(*step_location)
-                
+
                 # Ok, let's get started -- check our login status
                 status['message'] = 'Logging in...'
                 check_login(args, account, api, step_location, status['proxy_url'])
@@ -626,7 +626,7 @@ def search_worker_thread(args, account_queue, account_failures, search_items_que
                     log.error(status['message'])
                     time.sleep(args.scan_delay)
                     continue
-                    
+
                 # Got the response, check for captcha, parse it out, then send todo's to db/wh queues.
                 try:
                     # Captcha check
