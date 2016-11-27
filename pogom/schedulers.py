@@ -202,7 +202,7 @@ class HexSearch(BaseScheduler):
         locationsZeroed = []
         for step, location in enumerate(results, 1):
             if args.altitude_range > 0:
-                altitude = args.altitude + random.randrange(-1 * args.altitude_range, args.altitude_range - 1) + float(format(random.random(), '.13f'))
+                altitude = args.altitude + random.randrange(-1 * args.altitude_range, args.altitude_range) + float(format(random.random(), '.13f'))
             else:
                 altitude = args.altitude + float(format(random.random(), '.13f'))
 
@@ -340,7 +340,12 @@ class SpawnScan(BaseScheduler):
         # locations = [((lat, lng, alt), ts_appears, ts_leaves),...]
         retset = []
         for step, location in enumerate(self.locations, 1):
-            retset.append((step, (location['lat'], location['lng'], 40.32), location['appears'], location['leaves']))
+            if args.altitude_range > 0:
+                altitude = args.altitude + random.randrange(- 1 * args.altitude_range, args.altitude_range) + float(format(random.random(), '.13f'))
+            else:
+                altitude = args.altitude + float(format(random.random(), '.13f'))
+
+            retset.append((step, (location['lat'], location['lng'], altitude), location['appears'], location['leaves']))
 
         return retset
 
