@@ -72,8 +72,7 @@ def get_args():
 	                    help='generate random altitude in meter',
                         type=int, default=13)
     parser.add_argument('-altr', '--altitude_range',
-                        help='adds +- range to altitude in meter',
-                        type=int, default=0)
+                        type=int, default=1)
     parser.add_argument('-j', '--jitter', help='Apply random -9m to +9m jitter to location.',
                         action='store_true', default=False)
     parser.add_argument('-st', '--step-limit', help='Steps.', type=int,
