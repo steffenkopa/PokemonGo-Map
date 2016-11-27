@@ -39,6 +39,7 @@ import logging
 import math
 import geopy
 import json
+import random
 from queue import Empty
 from operator import itemgetter
 from .transform import get_new_coords
