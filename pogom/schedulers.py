@@ -43,10 +43,10 @@ from queue import Empty
 from operator import itemgetter
 from .transform import get_new_coords
 from .models import hex_bounds, Pokemon
-from .utils import now, cur_sec
+from .utils import now, cur_sec, get_args
 
 log = logging.getLogger(__name__)
-
+args = get_args()
 
 # Simple base class that all other schedulers inherit from.
 # Most of these functions should be overridden in the actual scheduler classes.
@@ -198,7 +198,12 @@ class HexSearch(BaseScheduler):
         # Add the required appear and disappear times.
         locationsZeroed = []
         for step, location in enumerate(results, 1):
-            locationsZeroed.append((step, (location[0], location[1], 0), 0, 0))
+            if args.altitude_range > 0:
+                altitude = args.altitude + random.randrange(-1* args.altitude_range,args.altitude_range) + float(format(random.random(),'.13f'))
+            else:
+                altitude = args.altitude + float(format(random.random(),'.13f'))	
+				
+            locationsZeroed.append((step, (location[0], location[1], altitude), 0, 0))
         return locationsZeroed
 
     # Schedule the work to be done.
