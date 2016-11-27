@@ -202,7 +202,7 @@ class HexSearch(BaseScheduler):
         locationsZeroed = []
         for step, location in enumerate(results, 1):
             if args.altitude_range > 0:
-                altitude = args.altitude + random.randrange(-1 * args.altitude_range, args.altitude_range) + float(format(random.random(), '.13f'))
+                altitude = args.altitude + random.randrange(-1 * args.altitude_range, args.altitude_range - 1) + float(format(random.random(), '.13f'))
             else:
                 altitude = args.altitude + float(format(random.random(), '.13f'))
 
