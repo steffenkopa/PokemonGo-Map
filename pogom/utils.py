@@ -69,7 +69,7 @@ def get_args():
     parser.add_argument('-l', '--location', type=parse_unicode,
                         help='Location, can be an address or coordinates.')
     parser.add_argument('-alt', '--altitude',
-	                    help='generate random altitude in meter',
+                        help='generate random altitude in meter',
                         type=int, default=13)
     parser.add_argument('-altr', '--altitude_range',
                         help='additional range for --altitude in meter',
