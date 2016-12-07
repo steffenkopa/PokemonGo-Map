@@ -608,10 +608,6 @@ def search_worker_thread(args, account_queue, account_failures, search_items_que
                 status['message'] = 'Logging in...'
                 check_login(args, account, api, step_location, status['proxy_url'])
 
-                # Putting this message after the check_login so the messages aren't out of order.
-                status['message'] = 'Searching at {:6f},{:6f}'.format(step_location[0], step_location[1])
-                log.info(status['message'])
-
                 # Make the actual request (finally!)
                 status['message'] = 'Searching at {:6f},{:6f}'.format(step_location[0], step_location[1])
                 log.info(status['message'])
