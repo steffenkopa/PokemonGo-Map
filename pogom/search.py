@@ -385,7 +385,7 @@ def search_overseer_thread(args, new_location_queue, pause_bit, heartb, db_updat
                 try:  # Can't have the scheduler die because of a DB deadlock
                     scheduler_array[i].schedule()
                 except Exception as e:
-                    log.error('Exception making schedule. Exception message: {}'.format(e))
+                    log.error('Schedule creation had an Exception: {}'.format(e))
                     traceback.print_exc(file=sys.stdout)
                     time.sleep(10)
             else:
