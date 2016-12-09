@@ -306,7 +306,7 @@ def search_overseer_thread(args, new_location_queue, pause_bit, heartb, db_updat
     for i in range(0, args.workers):
         log.debug('Starting search worker thread %d', i)
 
-        if args.beehive or i == 0:
+        if i == 0 or (args.beehive and i % args.workers_per_hive == 0):
             search_items_queue = Queue()
             # Create the appropriate type of scheduler to handle the search queue.
             scheduler = schedulers.SchedulerFactory.get_scheduler(args.scheduler, [search_items_queue], threadStatus, args)
