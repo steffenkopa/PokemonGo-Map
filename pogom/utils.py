@@ -10,7 +10,6 @@ import logging
 import shutil
 import pprint
 import time
-from geopy.distance import vincenty
 from s2sphere import CellId, LatLng
 
 from . import config
@@ -429,7 +428,7 @@ def equi_rect_distance(loc1, loc2):
     lat1 = math.radians(loc1[0])
     lat2 = math.radians(loc2[0])
     x = (math.radians(loc2[1]) - math.radians(loc1[1])) * math.cos(0.5 * (lat2 + lat1))
-    y = lat2 - lat1 
+    y = lat2 - lat1
     return R * math.sqrt(x * x + y * y)
 
 
