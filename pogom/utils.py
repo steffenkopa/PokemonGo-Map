@@ -4,6 +4,7 @@
 import sys
 import configargparse
 import os
+import math
 import json
 import logging
 import shutil
@@ -424,8 +425,10 @@ def cellid(loc):
 
 # Return True if distance between two locs is less than step_distance
 def in_radius(loc1, loc2, distance):
-    return vincenty(loc1, loc2).km < distance
-
+    R = 6371  # radius of the earth in km
+    x = (math.radians(loc2[1]) - math.radians(loc1[1])) * math.cos(0.5 * (math.radians(loc2[0]) + math.radians(loc1[0])))
+    y = math.radians(loc2[0]) - math.radians(loc1[0])
+    return R * math.sqrt(x * x + y * y) < distance
 
 def i8ln(word):
     if config['LOCALE'] == "en":
