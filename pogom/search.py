@@ -596,7 +596,6 @@ def search_worker_thread(args, account_queue, account_failures, search_items_que
                 status['message'] = 'Logging in...'
                 check_login(args, account, api, step_location, status['proxy_url'])
 
-
                 # putting this message after the check_login so the messages aren't out of order
                 status['message'] = messages['search']
                 log.info(status['message'])
