@@ -757,7 +757,6 @@ class SpeedScan(HexSearch):
         loc = best.get('loc', [])
         step = best.get('step', 0)
         i = best.get('i', 0)
-        item = q[i]
         messages = {
             'wait': 'Nothing to scan',
             'early': 'Early for step {}; waiting {}s...'.format(step, 'a few second'),
@@ -765,6 +764,12 @@ class SpeedScan(HexSearch):
             'search': 'Searching at step {}'.format(step),
             'invalid': 'Invalid response at step {}, abandoning location'.format(step)
         }
+
+        try:
+            item = q[i]
+        except IndexError:
+            messages['wait'] = 'Search aborting. Overseer refreshing queue.'
+            return -1, 0, 0, 0, messages
 
         if best['score'] == 0:
             if cant_reach:
