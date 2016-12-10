@@ -423,12 +423,20 @@ def cellid(loc):
     return CellId.from_lat_lng(LatLng.from_degrees(loc[0], loc[1])).to_token()
 
 
-# Return True if distance between two locs is less than step_distance
-def in_radius(loc1, loc2, distance):
+# Return equirectangular approximation distance in km
+def equi_rect_distance(loc1, loc2):
     R = 6371  # radius of the earth in km
-    x = (math.radians(loc2[1]) - math.radians(loc1[1])) * math.cos(0.5 * (math.radians(loc2[0]) + math.radians(loc1[0])))
-    y = math.radians(loc2[0]) - math.radians(loc1[0])
-    return R * math.sqrt(x * x + y * y) < distance
+    lat1 = math.radians(loc1[0])
+    lat2 = math.radians(loc2[0])
+    x = (math.radians(loc2[1]) - math.radians(loc1[1])) * math.cos(0.5 * (lat2 + lat1))
+    y = lat2 - lat1 
+    return R * math.sqrt(x * x + y * y)
+
+
+# Return True if distance between two locs is less than distance in km
+def in_radius(loc1, loc2, distance):
+    return equi_rect_distance(loc1, loc2) < distance
+
 
 def i8ln(word):
     if config['LOCALE'] == "en":

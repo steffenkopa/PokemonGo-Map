@@ -46,10 +46,9 @@ from collections import Counter
 from queue import Empty
 from operator import itemgetter
 from datetime import datetime, timedelta
-from geopy.distance import vincenty
 from .transform import get_new_coords
 from .models import hex_bounds, Pokemon, SpawnPoint, ScannedLocation, ScanSpawnPoint
-from .utils import now, cur_sec, cellid, date_secs
+from .utils import now, cur_sec, cellid, date_secs, equi_rect_distance
 
 log = logging.getLogger(__name__)
 
@@ -733,7 +732,7 @@ class SpeedScan(HexSearch):
                 break
 
             loc = item['loc']
-            distance = vincenty(loc, worker_loc).km
+            distance = equi_rect_distance(loc, worker_loc)
             secs_to_arrival = distance / self.args.kph * 3600
 
             # if we can't make it there before it disappears, don't bother trying
@@ -776,10 +775,10 @@ class SpeedScan(HexSearch):
                 messages['wait'] = 'Not able to reach any scan under the speed limit'
             return -1, 0, 0, 0, messages
 
-        if vincenty(loc, worker_loc).km > (now_date - last_action).total_seconds() * self.args.kph / 3600:
+        if equi_rect_distance(loc, worker_loc) > (now_date - last_action).total_seconds() * self.args.kph / 3600:
 
             messages['wait'] = 'Moving {}m to step {} for a {}'.format(
-                int(vincenty(loc, worker_loc).m), step, best['kind'])
+                int(equi_rect_distance(loc, worker_loc) / 1000), step, best['kind'])
             return -1, 0, 0, 0, messages
 
         prefix += ' Step %d,' % (step)
