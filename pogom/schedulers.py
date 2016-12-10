@@ -41,6 +41,7 @@ import geopy
 import json
 import time
 import sys
+from copy import deepcopy
 import traceback
 from collections import Counter
 from queue import Empty
@@ -590,11 +591,22 @@ class SpeedScan(HexSearch):
         now_date = datetime.utcnow()
         self.refresh_date = now_date
         self.refresh_ms = now_date.minute * 60 + now_date.second
-        if len(self.queues[0]):
+        old_q = deepcopy(self.queues[0])
+        queue = []
+
+        for cell, scan in self.scans.iteritems():
+            queue += ScannedLocation.get_times(scan, now_date)
+            queue += SpawnPoint.get_times(cell, scan, now_date, self.args.spawn_delay)
+
+        queue.sort(key=itemgetter('start'))
+        self.queues[0] = queue
+        self.ready = True
+        log.info('New queue created with %d entries', len(queue))
+        if len(old_q):
             try:  # Enclosing in try: to avoid divide by zero exceptions from killing overseer
 
                 # Possible 'done' values are 'Missed', 'Scanned', None, or number
-                Not_none_list = filter(lambda e: e.get('done', None) is not None, self.queues[0])
+                Not_none_list = filter(lambda e: e.get('done', None) is not None, old_q)
                 Missed_list = filter(lambda e: e.get('done', None) == 'Missed', Not_none_list)
                 Scanned_list = filter(lambda e: e.get('done', None) == 'Scanned', Not_none_list)
                 Timed_list = filter(lambda e: type(e['done']) is not str, Not_none_list)
@@ -681,19 +693,8 @@ class SpeedScan(HexSearch):
                 self._stat_init()
 
             except Exception as e:
-                log.error('performance statistics had an Exception: {}'.format(e))
+                log.error('Performance statistics had an Exception: {}'.format(e))
                 traceback.print_exc(file=sys.stdout)
-
-        queue = []
-
-        for cell, scan in self.scans.iteritems():
-            queue += ScannedLocation.get_times(scan, now_date)
-            queue += SpawnPoint.get_times(cell, scan, now_date, self.args.spawn_delay)
-
-        queue.sort(key=itemgetter('start'))
-        self.queues[0] = queue
-        self.ready = True
-        log.info('New queue created with %d entries', len(queue))
 
     # Find the best item to scan next
     def next_item(self, status):
