@@ -368,7 +368,7 @@ def search_overseer_thread(args, new_location_queue, pause_bit, heartb, db_updat
 
             step_distance = 0.9 if args.no_pokemon else 0.07
 
-            locations = generate_hive_locations(current_location, step_distance, args.step_limit, len(scheduler_array))
+            locations = generate_hive_locations(current_location, step_distance, args.step_limit, len(scheduler_array), args.workers_per_hive)
 
             for i in range(0, len(scheduler_array)):
                 scheduler_array[i].location_changed(locations[i], db_updates_queue)
@@ -393,7 +393,7 @@ def search_overseer_thread(args, new_location_queue, pause_bit, heartb, db_updat
 
 
 # Generates the list of locations to scan
-def generate_hive_locations(current_location, step_distance, step_limit, worker_count):
+def generate_hive_locations(current_location, step_distance, step_limit, worker_count, wph):
     NORTH = 0
     EAST = 90
     SOUTH = 180
@@ -409,7 +409,7 @@ def generate_hive_locations(current_location, step_distance, step_limit, worker_
     loc = current_location
     ring = 1
 
-    while len(results) < worker_count:
+    while len(results) * wph < worker_count:
 
         loc = get_new_coords(loc, ydist * (step_limit - 1), NORTH)
         loc = get_new_coords(loc, xdist * (1.5 * step_limit - 0.5), EAST)
