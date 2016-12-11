@@ -154,6 +154,7 @@ How about this line? `Initial scan: 100.00%, TTH found: 100.00%, Spawns reached:
 * `Initial scan` is the search for spawn points and scans each location in five bands within an hour, about 12 minutes apart. This should take a little over an hour to reach 100% with sufficient workers.
 * `TTH found` is the percentage of spawn points for which the exact spawn time is known. This could take up to a day to get over 90%.
 * `Spawns reached` is the percentage of spawns that are scanned before their timer runs out and they disappear. Will be low during the initial scan and possibly while still finding TTHs, but should reach 100% afterwards with sufficient workers.
+* `Spawns found` is the percentage of spawns that found when and where they were expected. Low percentages mean the durations or end time of the spawnpoints are incorrect.
 * `Good scans` are scans that aren't 0/0/0. Should be over 99% generally. If not, see above note about 0/0/0 warnings.
 
 On the print screen (-ps) or status page (-sn) what do the messages mean?
